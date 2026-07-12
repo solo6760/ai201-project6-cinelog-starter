@@ -66,4 +66,27 @@ Git itself did not flag any direct merge conflicts during the rebase because the
 - Executed `pytest` across all test suites, which passed successfully.
 
 ## PR Description
-<!-- Written at the end — feature overview, design decisions, manual testing steps -->
+### Feature Overview
+This PR implements the Watchlist feature for CineLog, allowing users to save movies they want to watch later. It introduces:
+- A new `WatchlistEntry` database model with relationships to the `User` and `Film` models.
+- Core business logic in a dedicated watchlist service (`add_to_watchlist` and `get_watchlist`).
+- Endpoints to view a user's watchlist (`GET /watchlist/<user_id>`) and add films to a watchlist (`POST /watchlist/<user_id>/add`).
+
+### Key Design Decisions
+- **Default Visibility (`public=True`)**: Defaulting watchlists to public optimizes for CineLog's core social discovery and movie-recommendation dynamics, while allowing users to explicitly toggle entries to private if desired.
+- **Sort Order (`date_added.desc()`)**: Watchlists sort items by the date they were added in descending order to keep recent, high-intent additions at the top.
+- **UUID Schema Compatibility**: Aligned the `WatchlistEntry` schema to use string-based UUID relationships matching the main branch's database migration.
+- **Strict Deduplication**: Prevents duplicate films on a user's watchlist by raising an `AlreadyInWatchlistError` (mapping to a `409` Conflict response).
+
+### Manual Verification Steps
+1. Run the local development server:
+   ```bash
+   python app.py
+   ```
+2. Send a `POST` request to `/watchlist/<user_id>/add` with a JSON payload of `{ "film_id": "<uuid>" }` to add a film.
+3. Send the same request again and verify a `409` conflict status code is returned.
+4. Send a `GET` request to `/watchlist/<user_id>` and verify that the films are returned in reverse-chronological order (newest additions first).
+5. Run the unit test suite:
+   ```bash
+   pytest -v
+   ```
