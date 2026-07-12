@@ -56,8 +56,14 @@ The maintainer rightly points out that alphabetical sorting scatters recent addi
 
 ## Comment 6 — Rebase
 **What conflicted:**
+Git itself did not flag any direct merge conflicts during the rebase because the branch's commits did not modify [models.py](models.py) directly. However, the rebase introduced a logical conflict: `main` included commit `07ca580` ("refactor: migrate film IDs from integer to UUID"), which refactored `Film.id` and `CollectionEntry.film_id` to UUID strings and completely replaced the older `models.py` state, inadvertently dropping the `WatchlistEntry` model class entirely.
 **How I resolved it:**
+- Re-added the `WatchlistEntry` class back into [models.py](models.py).
+- Migrated the model's `film_id` column from `db.Integer` to `db.String(36)` to align with the UUID changes in `07ca580`.
+- Added the corresponding relationships `watchlist_entries = db.relationship("WatchlistEntry", backref="user", lazy=True)` to the `User` class and `watchlist_entries = db.relationship("WatchlistEntry", backref="film", lazy=True)` to the `Film` class.
 **How I verified no conflict remains:**
+- Expanded the test suite in [tests/test_watchlist.py](tests/test_watchlist.py) to cover all behaviors: creating valid entries, raising `AlreadyInWatchlistError` for duplicate entries, raising `FilmNotFoundError` for nonexistent film UUIDs, and sorting by `date_added` descending.
+- Executed `pytest` across all test suites, which passed successfully.
 
 ## PR Description
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->
