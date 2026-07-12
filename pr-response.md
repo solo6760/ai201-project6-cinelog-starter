@@ -90,3 +90,6 @@ This PR implements the Watchlist feature for CineLog, allowing users to save mov
    ```bash
    pytest -v
    ```
+
+### Git Log Messages
+![Git Messages](Screenshot_20260712_185132.png)
